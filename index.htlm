@@ -1,0 +1,2239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CoopEscolar — Provincia de Buenos Aires</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════
+   DESIGN TOKENS — edit these to restyle the app
+   ═══════════════════════════════════════════════ */
+:root {
+  /* Primary accent (buttons, progress, active states) */
+  --accent:        #1A9ABF;
+  --accent-light:  #E0F5FB;
+  --accent-dark:   #0F718A;
+
+  /* Surface colors */
+  --bg:            #FAFAF8;
+  --surface:       #FFFFFF;
+  --surface-2:     #F4F3EF;
+  --border:        rgba(0,0,0,0.09);
+  --border-strong: rgba(0,0,0,0.18);
+
+  /* Text */
+  --text-1: #1A1A18;
+  --text-2: #5A5A56;
+  --text-3: #9A9A96;
+
+  /* Highlight box */
+  --hl-bg:     #E0F5FB;
+  --hl-border: #1A9ABF;
+  --hl-text:   #0F718A;
+
+  /* Danger / admin */
+  --danger:    #C0392B;
+  --danger-lt: #FDECEA;
+  --success:   #1B8A5A;
+  --success-lt:#E6F4EE;
+
+  /* Typography */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body:    'DM Sans', system-ui, sans-serif;
+
+  /* Hero gradient */
+  --hero-bg: var(--accent-light);
+
+  /* Shape */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:            #141412;
+    --surface:       #1E1E1C;
+    --surface-2:     #2A2A28;
+    --border:        rgba(255,255,255,0.09);
+    --border-strong: rgba(255,255,255,0.18);
+    --text-1: #F0EFEB;
+    --text-2: #A8A8A4;
+    --text-3: #68685E;
+    --hl-bg:     #0D3A47;
+    --hl-border: #1A9ABF;
+    --hl-text:   #7AD4EF;
+    --danger-lt: #3A1210;
+    --success-lt:#0A2E1C;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text-1);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+button { font-family: var(--font-body); cursor: pointer; border: none; background: none; }
+input, textarea, select { font-family: var(--font-body); }
+a { color: var(--accent); text-decoration: none; }
+
+/* ═══════════════════════════════════════════════
+   LAYOUT SHELL
+   ═══════════════════════════════════════════════ */
+.shell {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 60px rgba(0,0,0,0.08);
+  position: relative;
+}
+
+/* ═══════════════════════════════════════════════
+   SCREENS (shown/hidden)
+   ═══════════════════════════════════════════════ */
+.screen { display: none; flex-direction: column; flex: 1; }
+.screen.active { display: flex; }
+
+/* ═══════════════════════════════════════════════
+   TOP BAR
+   ═══════════════════════════════════════════════ */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  z-index: 10;
+}
+
+.topbar-back {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  color: var(--text-2);
+  font-size: 20px;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.topbar-back:hover { background: var(--surface-2); }
+
+.progress-outer {
+  flex: 1;
+  height: 8px;
+  background: var(--surface-2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.progress-inner {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--accent);
+  transition: width 0.45s cubic-bezier(.4,0,.2,1);
+}
+
+.topbar-xp {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════
+   HOME SCREEN
+   ═══════════════════════════════════════════════ */
+.home-hero {
+  padding: 32px 24px 20px;
+  background: var(--hero-bg, var(--accent-light));
+  border-bottom: 1px solid var(--border);
+  transition: background 0.4s ease;
+}
+.home-hero-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent-dark);
+  margin-bottom: 6px;
+}
+.home-hero-title {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--text-1);
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+.home-hero-sub {
+  font-size: 14px;
+  color: var(--text-2);
+  line-height: 1.6;
+}
+/* When hero has a dark gradient, lighten the text */
+.home-hero.hero-dark .home-hero-label,
+.home-hero.hero-dark .home-hero-title,
+.home-hero.hero-dark .home-hero-sub {
+  color: rgba(255,255,255,0.92);
+}
+
+.modules-list {
+  flex: 1;
+  padding: 20px 16px 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+}
+
+.module-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.module-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent-light);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.module-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(26,154,191,0.12); }
+.module-card:hover::before { opacity: 1; }
+.module-card:active { transform: scale(0.98); }
+
+.mod-icon {
+  width: 52px; height: 52px;
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+.mod-body { flex: 1; position: relative; z-index: 1; }
+.mod-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-1);
+  margin-bottom: 3px;
+}
+.mod-meta {
+  font-size: 12px;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mod-arrow { color: var(--text-3); font-size: 18px; position: relative; z-index: 1; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+}
+.badge-new { background: var(--accent-light); color: var(--accent-dark); }
+.badge-done { background: var(--success-lt); color: var(--success); }
+
+/* Bottom home bar */
+.home-footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 12px 16px 20px;
+  display: flex;
+  gap: 10px;
+}
+.btn-admin {
+  flex: 1;
+  padding: 13px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid var(--border-strong);
+  color: var(--text-2);
+  background: var(--surface-2);
+  transition: background 0.15s;
+}
+.btn-admin:hover { background: var(--border); }
+
+/* ═══════════════════════════════════════════════
+   LESSON SCREEN
+   ═══════════════════════════════════════════════ */
+.lesson-meta {
+  padding: 14px 24px 4px;
+  border-bottom: 1px solid var(--border);
+}
+.lesson-meta-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--text-1);
+}
+.lesson-meta-sub {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+.lesson-content {
+  flex: 1;
+  padding: 20px 24px 140px;
+  overflow-y: auto;
+}
+
+.para {
+  font-size: 17px;
+  line-height: 1.8;
+  color: var(--text-1);
+  margin-bottom: 18px;
+  animation: paraIn 0.38s cubic-bezier(.4,0,.2,1);
+}
+
+@keyframes paraIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.para-highlight {
+  background: var(--hl-bg);
+  border-left: 3px solid var(--hl-border);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 13px 16px;
+  margin: 8px 0 18px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--hl-text);
+  animation: paraIn 0.38s cubic-bezier(.4,0,.2,1);
+}
+.para-highlight strong { font-weight: 500; }
+
+.inline-code {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 1px 7px;
+  font-family: 'Courier New', monospace;
+  font-size: 14.5px;
+  color: var(--text-1);
+}
+
+/* ═══════════════════════════════════════════════
+   QUIZ
+   ═══════════════════════════════════════════════ */
+.quiz-wrap {
+  padding: 24px;
+  animation: paraIn 0.38s cubic-bezier(.4,0,.2,1);
+}
+.quiz-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+.quiz-question {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-1);
+  line-height: 1.4;
+  margin-bottom: 24px;
+}
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.quiz-opt {
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border-strong);
+  font-size: 15px;
+  color: var(--text-1);
+  text-align: left;
+  background: var(--surface);
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  cursor: pointer;
+  line-height: 1.4;
+}
+.quiz-opt:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-light); }
+.quiz-opt:active:not(:disabled) { transform: scale(0.99); }
+.quiz-opt.correct { border-color: var(--success); background: var(--success-lt); color: var(--success); }
+.quiz-opt.wrong { border-color: var(--danger); background: var(--danger-lt); color: var(--danger); }
+.quiz-opt:disabled { cursor: default; }
+
+.quiz-feedback {
+  margin-top: 20px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  line-height: 1.6;
+  display: none;
+}
+.quiz-feedback.show { display: block; animation: paraIn 0.3s ease; }
+.quiz-feedback.ok { background: var(--success-lt); color: var(--success); }
+.quiz-feedback.fail { background: var(--danger-lt); color: var(--danger); }
+
+/* ═══════════════════════════════════════════════
+   COMPLETE SCREEN
+   ═══════════════════════════════════════════════ */
+.complete-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 28px;
+  text-align: center;
+  animation: paraIn 0.4s ease;
+}
+.complete-medal {
+  font-size: 64px;
+  margin-bottom: 20px;
+  line-height: 1;
+}
+.complete-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-1);
+  margin-bottom: 10px;
+}
+.complete-sub {
+  font-size: 15px;
+  color: var(--text-2);
+  line-height: 1.65;
+  max-width: 280px;
+  margin: 0 auto 8px;
+}
+.xp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent-light);
+  color: var(--accent-dark);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 18px;
+  border-radius: 20px;
+  margin-top: 12px;
+}
+
+/* ═══════════════════════════════════════════════
+   BOTTOM ACTION BAR (lesson / complete)
+   ═══════════════════════════════════════════════ */
+.action-bar {
+  position: sticky;
+  bottom: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 14px 20px 24px;
+}
+.btn-primary {
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: background 0.15s, transform 0.1s;
+}
+.btn-primary:hover { background: var(--accent-dark); }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { background: var(--text-3); cursor: default; }
+
+/* ═══════════════════════════════════════════════
+   ADMIN PANEL
+   ═══════════════════════════════════════════════ */
+.admin-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.admin-header-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+.admin-header-sub { font-size: 13px; color: var(--text-2); margin-top: 2px; }
+
+.admin-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  gap: 4px;
+  background: var(--surface);
+}
+.admin-tab {
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-3);
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.admin-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.admin-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 20px 100px;
+}
+
+/* Admin section */
+.admin-section { margin-bottom: 28px; }
+.admin-section-title {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 12px;
+}
+
+.admin-module-row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.admin-mod-icon { font-size: 22px; flex-shrink: 0; }
+.admin-mod-info { flex: 1; }
+.admin-mod-name { font-size: 14px; font-weight: 500; color: var(--text-1); }
+.admin-mod-meta { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+.admin-mod-actions { display: flex; gap: 6px; }
+.btn-icon {
+  width: 32px; height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  background: var(--surface-2);
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.btn-icon:hover { background: var(--border); }
+.btn-icon.danger { color: var(--danger); border-color: var(--danger-lt); }
+.btn-icon.danger:hover { background: var(--danger-lt); }
+
+/* Forms */
+.form-group { margin-bottom: 16px; }
+.form-label { font-size: 13px; font-weight: 500; color: var(--text-2); margin-bottom: 6px; display: block; }
+.form-input, .form-textarea, .form-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--text-1);
+  background: var(--surface);
+  transition: border-color 0.15s;
+  outline: none;
+  appearance: none;
+}
+.form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--accent); }
+.form-textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+.form-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239A9A96' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+
+.btn-secondary {
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  background: var(--surface-2);
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.btn-secondary:hover { background: var(--surface-2); border-color: var(--accent); color: var(--accent); }
+
+.btn-add {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1.5px dashed var(--border-strong);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-light);
+  transition: background 0.15s;
+  margin-top: 4px;
+}
+.btn-add:hover { background: var(--accent-light); border-color: var(--accent); }
+
+.quiz-edit-row {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--text-1);
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.quiz-edit-row .quiz-q { flex: 1; line-height: 1.5; }
+.quiz-edit-row .quiz-a { font-size: 12px; color: var(--success); margin-top: 2px; }
+
+/* Theme editor */
+.theme-swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.theme-swatch {
+  height: 52px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.12s, border-color 0.15s;
+  position: relative;
+}
+.theme-swatch:hover { transform: scale(1.06); }
+.theme-swatch.active { border-color: var(--text-1); }
+.theme-swatch-label {
+  font-size: 10px;
+  text-align: center;
+  color: var(--text-3);
+  margin-top: 4px;
+}
+
+.color-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+.color-row label { font-size: 13px; color: var(--text-2); flex: 1; }
+.color-picker {
+  width: 36px; height: 36px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  padding: 2px;
+  background: var(--surface);
+}
+.color-hex {
+  width: 90px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: monospace;
+  color: var(--text-1);
+  background: var(--surface);
+  outline: none;
+}
+.color-hex:focus { border-color: var(--accent); }
+
+.font-option {
+  padding: 12px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: border-color 0.15s;
+}
+.font-option.active { border-color: var(--accent); background: var(--accent-light); }
+.font-option-name { font-size: 15px; font-weight: 500; color: var(--text-1); margin-bottom: 2px; }
+.font-option-preview { font-size: 13px; color: var(--text-2); }
+
+/* Admin login */
+.login-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 32px;
+}
+.login-icon { font-size: 48px; margin-bottom: 16px; }
+.login-title { font-family: var(--font-display); font-size: 24px; font-weight: 600; color: var(--text-1); margin-bottom: 8px; }
+.login-sub { font-size: 14px; color: var(--text-2); margin-bottom: 28px; text-align: center; }
+.login-hint { font-size: 12px; color: var(--text-3); margin-top: 10px; text-align: center; }
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 100;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  width: 100%;
+  max-width: 480px;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 24px 20px 40px;
+  animation: slideUp 0.3s cubic-bezier(.4,0,.2,1);
+}
+@keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-1);
+  margin-bottom: 20px;
+}
+.modal-footer {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* Divider */
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--text-1);
+  color: var(--surface);
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.25s, transform 0.25s;
+  z-index: 200;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.home-hero.hero-dark .home-hero-label { color: rgba(255,255,255,0.75); }
+.home-hero.hero-dark .home-hero-title { color: #fff; }
+.home-hero.hero-dark .home-hero-sub { color: rgba(255,255,255,0.85); }
+
+/* Util */
+.mt-8 { margin-top: 8px; }
+.mt-16 { margin-top: 16px; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.text-sm { font-size: 13px; color: var(--text-2); }
+</style>
+</head>
+<body>
+
+<div class="shell" id="shell">
+
+  <!-- ══════════════ SPLASH SCREEN ══════════════ -->
+  <div class="screen active" id="screen-splash" style="justify-content:center;align-items:center;min-height:100vh">
+    <div id="splash-inner" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center;width:100%">
+      <div id="splash-logo-wrap" style="margin-bottom:28px"></div>
+      <div id="splash-label" style="font-size:12px;font-weight:500;letter-spacing:0.13em;text-transform:uppercase;color:rgba(255,255,255,0.7);margin-bottom:10px"></div>
+      <div id="splash-title" style="font-family:'Fraunces',Georgia,serif;font-size:28px;font-weight:600;color:#fff;margin-bottom:14px;line-height:1.25"></div>
+      <div id="splash-desc-wrap" style="background:rgba(255,255,255,0.15);backdrop-filter:blur(4px);border-radius:16px;padding:16px 20px;max-width:280px;margin-bottom:40px">
+        <div id="splash-desc" style="font-size:15px;color:#fff;line-height:1.7"></div>
+      </div>
+      <button onclick="goHome()" id="splash-btn" style="background:#fff;font-family:'DM Sans',system-ui,sans-serif;font-size:16px;font-weight:500;padding:16px 52px;border-radius:50px;border:none;cursor:pointer;letter-spacing:0.04em;box-shadow:0 4px 24px rgba(0,0,0,0.25);transition:transform 0.12s" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''">
+        ¡Comenzar!
+      </button>
+      <div id="admin-tap-zone" onclick="handleAdminTap()" style="position:fixed;bottom:0;right:0;width:60px;height:60px;opacity:0;cursor:default"></div>
+      <div id="admin-tap-hint" style="margin-top:32px;font-size:11px;color:rgba(255,255,255,0);transition:color 0.3s"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════ HOME SCREEN ══════════════ -->
+  <div class="screen active" id="screen-home">
+    <div class="home-hero" id="home-hero">
+      <div id="hero-logo-wrap"></div>
+      <div class="home-hero-label" id="hero-label">Provincia de Buenos Aires</div>
+      <div class="home-hero-title" id="hero-title">CoopEscolar</div>
+      <div class="home-hero-sub" id="hero-sub">Aprendé sobre cooperadoras escolares paso a paso. Completá las lecciones y poné a prueba tus conocimientos.</div>
+    </div>
+    <div class="modules-list" id="modules-list"></div>
+    <div class="home-footer" style="justify-content:center">
+      <div style="font-size:12px;color:var(--text-3);text-align:center">Consejo Escolar La Matanza · DGCyE</div>
+    </div>
+  </div>
+
+  <!-- ══════════════ LESSON SCREEN ══════════════ -->
+  <div class="screen" id="screen-lesson">
+    <div class="topbar">
+      <button class="topbar-back" onclick="goHome()">✕</button>
+      <div class="progress-outer"><div class="progress-inner" id="lesson-progress"></div></div>
+      <div class="topbar-xp" id="lesson-counter">1 / 1</div>
+    </div>
+    <div class="lesson-meta">
+      <div class="lesson-meta-title" id="lesson-title-display"></div>
+      <div class="lesson-meta-sub" id="lesson-step-display"></div>
+    </div>
+    <div class="lesson-content" id="lesson-content"></div>
+    <div class="action-bar">
+      <button class="btn-primary" id="lesson-btn" onclick="lessonNext()">Continuar</button>
+    </div>
+  </div>
+
+  <!-- ══════════════ COMPLETE SCREEN ══════════════ -->
+  <div class="screen" id="screen-complete">
+    <div class="topbar">
+      <button class="topbar-back" onclick="goHome()">✕</button>
+      <div class="progress-outer"><div class="progress-inner" style="width:100%"></div></div>
+    </div>
+    <div class="complete-wrap">
+      <div class="complete-medal">🎖️</div>
+      <div class="complete-title">¡Lección completada!</div>
+      <div class="complete-sub" id="complete-text"></div>
+      <div class="xp-badge" id="complete-xp">⭐ +100 XP</div>
+    </div>
+    <div class="action-bar" id="complete-actions"></div>
+  </div>
+
+  <!-- ══════════════ ADMIN: LOGIN ══════════════ -->
+  <div class="screen" id="screen-admin-login">
+    <div class="topbar">
+      <button class="topbar-back" onclick="goHome()">←</button>
+      <span style="font-size:15px;font-weight:500;color:var(--text-1)">Administración</span>
+    </div>
+    <div class="login-wrap">
+      <div class="login-icon">🔒</div>
+      <div class="login-title">Acceso restringido</div>
+      <div class="login-sub">Ingresá la contraseña de administrador para gestionar el contenido de la app.</div>
+      <div class="form-group" style="width:100%">
+        <input type="password" class="form-input" id="admin-password" placeholder="Contraseña" onkeydown="if(event.key==='Enter')checkAdmin()">
+      </div>
+      <button class="btn-primary" style="width:100%" onclick="checkAdmin()">Ingresar</button>
+      <div class="login-hint">Contraseña por defecto: <strong>admin123</strong><br>Podés cambiarla en el panel.</div>
+    </div>
+  </div>
+
+  <!-- ══════════════ ADMIN: PANEL ══════════════ -->
+  <div class="screen" id="screen-admin">
+    <div class="topbar">
+      <button class="topbar-back" onclick="goHome()">←</button>
+      <span style="font-size:15px;font-weight:500;color:var(--text-1)">Panel de administración</span>
+    </div>
+    <div class="admin-tabs">
+      <div class="admin-tab active" onclick="switchAdminTab('content',this)">Contenido</div>
+      <div class="admin-tab" onclick="switchAdminTab('splash',this)">Inicio</div>
+      <div class="admin-tab" onclick="switchAdminTab('theme',this)">Estética</div>
+      <div class="admin-tab" onclick="switchAdminTab('settings',this)">Ajustes</div>
+    </div>
+    <div class="admin-body" id="admin-body"></div>
+  </div>
+
+</div><!-- /shell -->
+
+<!-- ══════════════ MODAL: EDIT MODULE ══════════════ -->
+<div class="modal-overlay" id="modal-module" onclick="if(event.target===this)closeModal('modal-module')">
+  <div class="modal">
+    <div class="modal-title" id="modal-module-title">Editar módulo</div>
+    <div class="form-group">
+      <label class="form-label">Nombre del módulo</label>
+      <input type="text" class="form-input" id="edit-mod-name">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ícono (emoji)</label>
+      <input type="text" class="form-input" id="edit-mod-icon" maxlength="4" style="width:80px">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Color de fondo del ícono (hex)</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="color" class="color-picker" id="edit-mod-color" style="width:44px;height:36px">
+        <input type="text" class="form-input" id="edit-mod-color-hex" style="width:110px" placeholder="#E0F5FB">
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="form-group">
+      <label class="form-label">Párrafos de la lección</label>
+      <div id="edit-paras-list"></div>
+      <button class="btn-add mt-8" onclick="addParaField()">+ Agregar párrafo</button>
+    </div>
+    <div class="divider"></div>
+    <div class="form-group">
+      <label class="form-label">Preguntas de repaso (quiz)</label>
+      <div id="edit-quiz-list"></div>
+      <button class="btn-add mt-8" onclick="addQuizField()">+ Agregar pregunta</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" style="flex:1" onclick="closeModal('modal-module')">Cancelar</button>
+      <button class="btn-primary" style="flex:2" onclick="saveModule()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ MODAL: ADD QUIZ QUESTION ══════════════ -->
+<div class="modal-overlay" id="modal-quiz" onclick="if(event.target===this)closeModal('modal-quiz')">
+  <div class="modal">
+    <div class="modal-title">Nueva pregunta</div>
+    <div class="form-group">
+      <label class="form-label">Pregunta</label>
+      <input type="text" class="form-input" id="q-question">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Opción A</label>
+      <input type="text" class="form-input" id="q-a">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Opción B</label>
+      <input type="text" class="form-input" id="q-b">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Opción C</label>
+      <input type="text" class="form-input" id="q-c">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Opción D</label>
+      <input type="text" class="form-input" id="q-d">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Respuesta correcta</label>
+      <select class="form-select" id="q-correct">
+        <option value="0">A</option><option value="1">B</option>
+        <option value="2">C</option><option value="3">D</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Explicación (se muestra al responder)</label>
+      <textarea class="form-textarea" id="q-explanation" style="min-height:70px"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" style="flex:1" onclick="closeModal('modal-quiz')">Cancelar</button>
+      <button class="btn-primary" style="flex:2" onclick="saveQuizQuestion()">Agregar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════ */
+const DEFAULT_DATA = {
+  adminPassword: "admin123",
+  completedModules: [],
+  modules: [
+    {
+      id: 1, name: "¿Qué es una Cooperadora?", icon: "🏫", iconBg: "#E0F5FB",
+      paragraphs: [
+        "Las <strong>cooperadoras escolares</strong> son asociaciones civiles sin fines de lucro que funcionan en los establecimientos educativos de la provincia de Buenos Aires.",
+        "Su principal objetivo es colaborar con la comunidad educativa para mejorar las condiciones de enseñanza y aprendizaje, apoyando materialmente a la institución escolar.",
+        "Están integradas por padres, madres, tutores y personas vinculadas a la escuela que desean contribuir activamente con la educación pública.",
+        "highlight:Las cooperadoras escolares son <strong>personas jurídicas de carácter privado</strong> y actúan de forma complementaria al Estado, nunca en su reemplazo.",
+        "Su existencia y funcionamiento están regulados por normativas provinciales específicas que establecen sus derechos, obligaciones y formas de organización."
+      ],
+      quiz: [
+        { q: "¿Cuál es el principal objetivo de una cooperadora escolar?", opts: ["Reemplazar al Estado en la educación","Colaborar para mejorar las condiciones educativas","Recaudar impuestos escolares","Gestionar el personal docente"], correct: 1, exp: "Las cooperadoras colaboran con la institución pero nunca reemplazan al Estado." },
+        { q: "¿Qué tipo de persona jurídica es una cooperadora escolar?", opts: ["Persona jurídica pública","Empresa con fines de lucro","Persona jurídica de carácter privado","Organismo gubernamental"], correct: 2, exp: "Son asociaciones civiles sin fines de lucro, personas jurídicas privadas." }
+      ]
+    },
+    {
+      id: 2, name: "Normativa vigente", icon: "📋", iconBg: "#EAF3DE",
+      paragraphs: [
+        "La normativa específica que regula las cooperadoras escolares en la provincia de Buenos Aires es el <span class='inline-code'>Decreto 4767/72</span> y su modificatorio el Decreto 355/73, que establecen su régimen de funcionamiento.",
+        "Este decreto establece los requisitos para el reconocimiento oficial, la estructura de la Comisión Directiva, el régimen económico-financiero y las relaciones con las autoridades educativas.",
+        "El <span class='inline-code'>Decreto 2299/11</span> es el Reglamento General de las Instituciones Educativas de la Provincia, que en su artículo 27° reconoce a las cooperadoras como parte de la comunidad educativa.",
+        "highlight:El reconocimiento oficial de una cooperadora lo otorga el <strong>Ministerio de Educación de la Provincia de Buenos Aires</strong>, gestionado a través de la <strong>Dirección de Cooperación Escolar</strong> de la DGCyE.",
+        "La Ley Nacional <span class='inline-code'>26.759</span> de Cooperadoras Escolares garantiza a nivel federal la participación de las familias a través de las cooperadoras en todos los establecimientos educativos.",
+        "La DGCyE, a través de la Dirección de Cooperación Escolar, ejerce la supervisión y el control del funcionamiento de todas las cooperadoras de la provincia."
+      ],
+      quiz: [
+        { q: "¿Qué decreto regula específicamente a las cooperadoras escolares de la Pcia. de Buenos Aires?", opts: ["Decreto 2299/11","Decreto 4767/72","Ley 13688","Resolución 1420"], correct: 1, exp: "El Decreto 4767/72 y su modificatorio 355/73 son la normativa específica de las cooperadoras escolares bonaerenses." },
+        { q: "¿Ante qué organismo se gestiona el reconocimiento oficial de una cooperadora en Bs. As.?", opts: ["Dirección Provincial de Personas Jurídicas","Ministerio de Economía","Dirección de Cooperación Escolar de la DGCyE","Inspección General de Justicia"], correct: 2, exp: "El reconocimiento lo otorga el Ministerio de Educación, gestionado por intermedio de la Dirección de Cooperación Escolar." }
+      ]
+    },
+    {
+      id: 3, name: "Los libros obligatorios", icon: "📚", iconBg: "#FAEEDA",
+      paragraphs: [
+        "Toda cooperadora debe llevar un conjunto de libros contables y administrativos que permiten registrar y transparentar su gestión.",
+        "El <span class='inline-code'>Libro de Actas</span> registra las decisiones tomadas en las reuniones de Comisión Directiva y en las Asambleas, con la firma de los presentes.",
+        "El <span class='inline-code'>Libro de Caja</span> registra los ingresos y egresos diarios de fondos. Debe estar siempre actualizado, balanceado y rubricado.",
+        "highlight:Los libros deben ser <strong>foliados y rubricados por el Consejo Escolar</strong> antes de comenzar a utilizarlos. Sin rúbrica del Consejo Escolar, no tienen validez legal.",
+        "El <span class='inline-code'>Libro de Socios</span> registra a todos los miembros de la cooperadora, sus datos personales y el estado de sus cuotas societarias."
+      ],
+      quiz: [
+        { q: "¿Quién debe foliar y rubricar los libros de la cooperadora antes de usarlos?", opts: ["El Director de la escuela","El Consejo Escolar","El Inspector Jefe Distrital","La Dirección de Cooperación Escolar"], correct: 1, exp: "Según el Decreto 4767/72, los libros deben estar foliados y rubricados por el Consejo Escolar del distrito." },
+        { q: "¿Qué libro registra las decisiones de las asambleas?", opts: ["Libro de Caja","Libro de Socios","Libro de Inventario","Libro de Actas"], correct: 3, exp: "El Libro de Actas registra todas las decisiones formales de la cooperadora." }
+      ]
+    },
+    {
+      id: 4, name: "Creación de una Cooperadora", icon: "✏️", iconBg: "#FAECE7",
+      paragraphs: [
+        "Para constituir una cooperadora escolar se requiere convocar una <strong>Asamblea Constitutiva</strong> a la que concurran padres, madres o tutores interesados.",
+        "En esa asamblea se redacta y aprueba el <span class='inline-code'>Estatuto Social</span>, que es el documento fundacional que establece los fines, la estructura y el funcionamiento.",
+        "También se elige en esa misma asamblea la primera <strong>Comisión Directiva</strong>, compuesta por: Presidente, Secretario, Tesorero y sus respectivos suplentes.",
+        "highlight:El Director del establecimiento actúa como <strong>Asesor</strong> de la cooperadora, con voz pero sin voto. Su participación es obligatoria y no puede impedirse la realización de asambleas por su ausencia.",
+        "Luego de la constitución, se deben iniciar los trámites ante la <strong>Dirección de Cooperación Escolar</strong> de la DGCyE para obtener el reconocimiento oficial.",
+        "Hasta obtener el reconocimiento oficial, la Comisión Directiva provisoria convocará una Asamblea Extraordinaria en un plazo de entre 5 y 15 días para constituir la comisión definitiva."
+      ],
+      quiz: [
+        { q: "¿Con qué tipo de asamblea se constituye una cooperadora?", opts: ["Asamblea Ordinaria","Asamblea Extraordinaria","Asamblea Constitutiva","Reunión de Comisión Directiva"], correct: 2, exp: "La Asamblea Constitutiva es el acto fundacional donde se aprueba el Estatuto." },
+        { q: "¿Cuál es el rol del Director de la escuela en la cooperadora?", opts: ["Presidente nato con voto doble","Tesorero obligatorio","Asesor con voz pero sin voto","No tiene participación"], correct: 2, exp: "El Director actúa como Asesor de la cooperadora: participa con voz pero no puede votar en las decisiones." }
+      ]
+    },
+    {
+      id: 5, name: "Reorganización y renovación", icon: "🔄", iconBg: "#FBEAF0",
+      paragraphs: [
+        "La Comisión Directiva de una cooperadora tiene un mandato de <strong>dos años</strong>, al cabo del cual debe convocarse una Asamblea para elegir nuevas autoridades.",
+        "Esta renovación de autoridades se denomina <strong>reorganización</strong> y es obligatoria. Si no se realiza en tiempo y forma, la cooperadora puede ser intervenida.",
+        "La <span class='inline-code'>Asamblea Ordinaria</span> se realiza en la fecha que fije la Dirección de Cooperación Escolar para cada zona, dentro de la <strong>segunda quincena de mayo</strong> de cada año. Se aprueba la memoria, el balance y se renuevan autoridades.",
+        "highlight:En casos de renuncia masiva o imposibilidad de los directivos, se puede convocar una <strong>Asamblea Extraordinaria</strong> para cubrir cargos vacantes fuera de los plazos ordinarios.",
+        "Cuando una cooperadora cesa en sus actividades, debe realizar una <strong>Asamblea de Disolución</strong> y destinar los fondos remanentes a la escuela o a otra cooperadora del distrito."
+      ],
+      quiz: [
+        { q: "¿Cuánto dura el mandato de la Comisión Directiva?", opts: ["1 año","2 años","3 años","4 años"], correct: 1, exp: "El mandato es de 2 años, renovándose en Asamblea Ordinaria." },
+        { q: "¿Cuándo debe realizarse la Asamblea Ordinaria anual?", opts: ["En los primeros 90 días del año","En cualquier momento del año","En la segunda quincena de mayo","Antes del 31 de diciembre"], correct: 2, exp: "El Decreto 4767/72 establece que la Asamblea Ordinaria se realiza en la fecha fijada por la Dirección de Cooperación Escolar, dentro de la segunda quincena de mayo." }
+      ]
+    },
+    {
+      id: 6, name: "Gestión Solidaria: el modelo comunitario", icon: "🤝", iconBg: "#FFF3E0",
+      paragraphs: [
+        "Inspiradas en modelos de gestión comunitaria integral, las cooperadoras escolares pueden dejar de verse como una instancia puramente administrativa para convertirse en <strong>proyectos de construcción colectiva</strong>.",
+        "highlight:El primer cambio de paradigma es pasar de la idea de <strong>\"juntar plata\"</strong> a construir <strong>comunidad</strong>. La cooperadora es un espacio de desarrollo humano integral donde padres y docentes son protagonistas de la mejora de la escuela.",
+        "Esto significa que la escuela no es solo un edificio: es un <strong>punto de encuentro vital para la comunidad</strong>, y la cooperadora es la herramienta que lo hace posible.",
+        "El segundo eje es la <strong>gestión de excelencia</strong>: lo solidario no debe ser informal ni desprolijo. La transparencia y el orden administrativo no son obstáculos — son lo que permite que los recursos lleguen efectivamente a los chicos.",
+        "highlight:La excelencia administrativa no se logra <strong>por miedo a la sanción</strong>, sino por la convicción de que cuando la gestión es profesional y transparente, los recursos llegan mejor a quienes más los necesitan.",
+        "El tercer eje es la <strong>integración de actores</strong>: no limitar la cooperadora solo al equipo directivo. Integrar exalumnos, comerciantes locales y docentes amplía la base de participación y fortalece el tejido social.",
+        "Una forma concreta de lograrlo son las <strong>ferias de emprendedores</strong>: la escuela abre sus puertas para que las familias muestren lo que producen, transformando una necesidad económica en un proyecto comunitario.",
+        "highlight:La <strong>corresponsabilidad</strong> es clave: que el equipo directivo y los cooperadores diseñen juntos los proyectos. Que cada logro — desde una feria hasta una mejora edilicia — se sienta como un logro de toda la comunidad educativa."
+      ],
+      quiz: [
+        { q: "¿Cuál es el cambio de paradigma central en la gestión solidaria?", opts: ["Aumentar las cuotas para recaudar más","Pasar de 'juntar plata' a construir comunidad","Profesionalizar solo la contabilidad","Reducir el número de socios"], correct: 1, exp: "El modelo comunitario integral pone el foco en el sentido de pertenencia y la construcción colectiva, no solo en la recaudación." },
+        { q: "¿Por qué es importante la excelencia administrativa en la cooperadora?", opts: ["Por miedo a ser sancionados","Para impresionar a las autoridades","Porque permite que los recursos lleguen efectivamente a los chicos","Para reducir la participación de los padres"], correct: 2, exp: "La transparencia y el orden no son un fin en sí mismos: son el medio para que los recursos lleguen donde más se necesitan." },
+        { q: "¿Qué significa 'corresponsabilidad' en este modelo?", opts: ["Que solo el director toma decisiones","Que directivos y cooperadores diseñen proyectos juntos","Que cada familia pague lo mismo","Que el Estado financie todo"], correct: 1, exp: "La corresponsabilidad implica que todos los actores de la comunidad educativa son protagonistas y comparten la autoría de los logros." }
+      ]
+    }
+  ]
+};
+
+/* ═══════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════ */
+let data = JSON.parse(localStorage.getItem('coopedata') || 'null') || JSON.parse(JSON.stringify(DEFAULT_DATA));
+let lessonState = {};
+let editingModuleId = null;
+let tempQuizList = [];
+let tempParaList = [];
+
+function save() { localStorage.setItem('coopedata', JSON.stringify(data)); }
+
+/* ═══════════════════════════════════════════
+   SECRET ADMIN ACCESS (tap bottom-right corner 7x)
+═══════════════════════════════════════════ */
+let adminTapCount = 0;
+let adminTapTimer;
+function handleAdminTap() {
+  adminTapCount++;
+  clearTimeout(adminTapTimer);
+  const hint = document.getElementById('admin-tap-hint');
+  if (adminTapCount >= 4) {
+    const left = 7 - adminTapCount;
+    if (hint) { hint.style.color = 'rgba(255,255,255,0.5)'; hint.textContent = left > 0 ? `${left} más...` : ''; }
+  }
+  if (adminTapCount >= 7) {
+    adminTapCount = 0;
+    if (hint) { hint.style.color = 'rgba(255,255,255,0)'; hint.textContent = ''; }
+    showAdmin();
+    return;
+  }
+  adminTapTimer = setTimeout(() => {
+    adminTapCount = 0;
+    if (hint) { hint.style.color = 'rgba(255,255,255,0)'; hint.textContent = ''; }
+  }, 3000);
+}
+
+/* ═══════════════════════════════════════════
+   SCREEN MANAGEMENT
+═══════════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function goHome() { renderHome(); showScreen('home'); applyBrandingToHome(); }
+
+/* ═══════════════════════════════════════════
+   HOME
+═══════════════════════════════════════════ */
+function renderHome() {
+  const list = document.getElementById('modules-list');
+  list.innerHTML = data.modules.map(m => {
+    const done = data.completedModules.includes(m.id);
+    return `<div class="module-card" onclick="startLesson(${m.id})">
+      <div class="mod-icon" style="background:${m.iconBg}">${m.icon}</div>
+      <div class="mod-body">
+        <div class="mod-name">${m.name} ${done ? `<span class="badge badge-done">✓ Completado</span>` : `<span class="badge badge-new">Nuevo</span>`}</div>
+        <div class="mod-meta">${m.paragraphs.length} párrafos · ${m.quiz.length} preguntas</div>
+      </div>
+      <div class="mod-arrow">›</div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════
+   LESSON ENGINE
+═══════════════════════════════════════════ */
+function startLesson(moduleId) {
+  const mod = data.modules.find(m => m.id === moduleId);
+  if (!mod) return;
+  lessonState = {
+    mod,
+    step: 0,         // current paragraph index
+    phase: 'learn',  // 'learn' | 'quiz' | 'done'
+    quizIndex: 0,
+    quizAnswered: false,
+    shownParas: []
+  };
+  document.getElementById('lesson-title-display').textContent = mod.name;
+  renderLessonStep();
+  showScreen('lesson');
+}
+
+function totalSteps(mod) { return mod.paragraphs.length + mod.quiz.length; }
+
+function renderLessonStep() {
+  const { mod, step, phase, quizIndex } = lessonState;
+  const total = totalSteps(mod);
+  const current = phase === 'learn' ? step + 1 : mod.paragraphs.length + quizIndex + 1;
+  const pct = (current / total) * 100;
+
+  document.getElementById('lesson-progress').style.width = pct + '%';
+  document.getElementById('lesson-counter').textContent = current + ' / ' + total;
+  document.getElementById('lesson-step-display').textContent =
+    phase === 'learn' ? `Párrafo ${step + 1} de ${mod.paragraphs.length}` :
+    phase === 'quiz'  ? `Pregunta ${quizIndex + 1} de ${mod.quiz.length}` : '';
+
+  const content = document.getElementById('lesson-content');
+  const btn = document.getElementById('lesson-btn');
+
+  if (phase === 'learn') {
+    // Show all paragraphs up to current step
+    if (lessonState.shownParas.length === 0) {
+      content.innerHTML = '';
+      lessonState.shownParas = [];
+    }
+    const raw = mod.paragraphs[step];
+    let html = '';
+    if (raw.startsWith('highlight:')) {
+      html = `<div class="para-highlight">${raw.slice(10)}</div>`;
+    } else {
+      html = `<p class="para">${raw}</p>`;
+    }
+    // append new paragraph
+    if (step === 0 && lessonState.shownParas.length === 0) {
+      content.innerHTML = html;
+    } else if (!lessonState.shownParas.includes(step)) {
+      content.innerHTML += html;
+    }
+    lessonState.shownParas.push(step);
+    content.scrollTop = content.scrollHeight;
+    btn.textContent = 'Continuar';
+    btn.disabled = false;
+  } else if (phase === 'quiz') {
+    renderQuiz();
+  }
+}
+
+function lessonNext() {
+  const { mod, step, phase, quizIndex, quizAnswered } = lessonState;
+
+  if (phase === 'learn') {
+    if (step < mod.paragraphs.length - 1) {
+      lessonState.step++;
+      renderLessonStep();
+    } else {
+      // Move to quiz phase if there are questions
+      if (mod.quiz.length > 0) {
+        lessonState.phase = 'quiz';
+        lessonState.quizIndex = 0;
+        lessonState.quizAnswered = false;
+        document.getElementById('lesson-content').innerHTML = '';
+        renderLessonStep();
+      } else {
+        completeLesson();
+      }
+    }
+  } else if (phase === 'quiz') {
+    if (!quizAnswered) return; // must answer first
+    if (quizIndex < mod.quiz.length - 1) {
+      lessonState.quizIndex++;
+      lessonState.quizAnswered = false;
+      renderLessonStep();
+    } else {
+      completeLesson();
+    }
+  }
+}
+
+function renderQuiz() {
+  const { mod, quizIndex } = lessonState;
+  const q = mod.quiz[quizIndex];
+  const content = document.getElementById('lesson-content');
+  const btn = document.getElementById('lesson-btn');
+
+  content.innerHTML = `<div class="quiz-wrap">
+    <div class="quiz-label">Repaso · pregunta ${quizIndex + 1}</div>
+    <div class="quiz-question">${q.q}</div>
+    <div class="quiz-options" id="quiz-opts">
+      ${q.opts.map((o,i) => `<button class="quiz-opt" onclick="answerQuiz(${i})" id="qopt-${i}">${o}</button>`).join('')}
+    </div>
+    <div class="quiz-feedback" id="quiz-feedback"></div>
+  </div>`;
+
+  btn.textContent = 'Continuar';
+  btn.disabled = true;
+}
+
+function answerQuiz(i) {
+  if (lessonState.quizAnswered) return;
+  lessonState.quizAnswered = true;
+  const q = lessonState.mod.quiz[lessonState.quizIndex];
+  const correct = q.correct;
+  const opts = document.querySelectorAll('.quiz-opt');
+  opts.forEach((o, idx) => {
+    o.disabled = true;
+    if (idx === correct) o.classList.add('correct');
+    if (idx === i && i !== correct) o.classList.add('wrong');
+  });
+  const fb = document.getElementById('quiz-feedback');
+  if (i === correct) {
+    fb.className = 'quiz-feedback show ok';
+    fb.innerHTML = '✓ ¡Correcto! ' + (q.exp || '');
+  } else {
+    fb.className = 'quiz-feedback show fail';
+    fb.innerHTML = '✗ Respuesta incorrecta. ' + (q.exp || '');
+  }
+  document.getElementById('lesson-btn').disabled = false;
+  document.getElementById('lesson-content').scrollTop = 9999;
+}
+
+function completeLesson() {
+  const mod = lessonState.mod;
+  if (!data.completedModules.includes(mod.id)) {
+    data.completedModules.push(mod.id);
+    save();
+  }
+  document.getElementById('complete-text').textContent = `Terminaste el módulo "${mod.name}". ¡Seguí aprendiendo!`;
+  const xp = 50 + mod.quiz.length * 25;
+  document.getElementById('complete-xp').textContent = `⭐ +${xp} XP`;
+
+  const nextMod = data.modules.find(m => m.id > mod.id);
+  const actions = document.getElementById('complete-actions');
+  if (nextMod) {
+    actions.innerHTML = `<button class="btn-primary" onclick="startLesson(${nextMod.id})">Siguiente lección →</button>`;
+  } else {
+    actions.innerHTML = `<button class="btn-primary" onclick="goHome()">Volver al inicio</button>`;
+  }
+  showScreen('complete');
+}
+
+/* ═══════════════════════════════════════════
+   ADMIN
+═══════════════════════════════════════════ */
+function showAdmin() { showScreen('admin-login'); document.getElementById('admin-password').value = ''; }
+
+function checkAdmin() {
+  const pw = document.getElementById('admin-password').value;
+  if (pw === data.adminPassword) {
+    showScreen('admin');
+    renderAdminContent();
+  } else {
+    showToast('Contraseña incorrecta');
+    document.getElementById('admin-password').value = '';
+  }
+}
+
+let currentAdminTab = 'content';
+
+function switchAdminTab(tab, el) {
+  currentAdminTab = tab;
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  if (tab === 'content') renderAdminContent();
+  else if (tab === 'splash') renderAdminSplash();
+  else if (tab === 'theme') renderAdminTheme();
+  else if (tab === 'settings') renderAdminSettings();
+}
+
+/* ── Splash / Inicio Tab ── */
+function renderAdminSplash() {
+  const sp = data.splash || {};
+  const body = document.getElementById('admin-body');
+  body.innerHTML = `
+    <div class="admin-section">
+      <div class="admin-section-title">Logo de la pantalla de inicio</div>
+      <p class="text-sm" style="margin-bottom:14px">Subí el logo oficial (PNG con fondo transparente recomendado). Se mostrará sobre el fondo degradado del inicio.</p>
+
+      <div id="splash-logo-preview-wrap" style="display:${sp.logoData ? 'flex' : 'none'};align-items:center;gap:12px;padding:12px 14px;background:var(--surface-2);border-radius:var(--radius-md);border:1px solid var(--border);margin-bottom:12px">
+        <div style="background:#333;border-radius:10px;padding:10px 14px;flex-shrink:0">
+          <img id="splash-logo-preview-img" src="${sp.logoData||''}" style="max-height:52px;max-width:160px;object-fit:contain;display:block">
+        </div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500;color:var(--text-1)">${sp.logoName||'Logo cargado'}</div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:2px">Se muestra sobre el fondo del inicio</div>
+        </div>
+        <button class="btn-icon danger" onclick="removeSplashLogo()">✕</button>
+      </div>
+
+      <div id="splash-dropzone" onclick="document.getElementById('splash-logo-file').click()"
+        style="border:2px dashed var(--border-strong);border-radius:var(--radius-md);padding:28px 16px;text-align:center;cursor:pointer;background:var(--surface-2);transition:border-color 0.15s,background 0.15s"
+        ondragover="event.preventDefault();this.style.borderColor='var(--accent)';this.style.background='var(--accent-light)'"
+        ondragleave="this.style.borderColor='';this.style.background='var(--surface-2)'"
+        ondrop="event.preventDefault();this.style.borderColor='';this.style.background='var(--surface-2)';handleSplashLogoDrop(event)">
+        <div style="font-size:32px;margin-bottom:8px">${sp.logoData ? '🔄' : '🖼️'}</div>
+        <div style="font-size:14px;font-weight:500;color:var(--text-1);margin-bottom:4px">${sp.logoData ? 'Reemplazar logo' : 'Subir logo'}</div>
+        <div style="font-size:12px;color:var(--text-3)">Arrastrá o tocá · PNG, JPG, SVG</div>
+      </div>
+      <input type="file" id="splash-logo-file" accept="image/*" style="display:none" onchange="uploadSplashLogo(event)">
+
+      ${sp.logoData ? `
+      <div style="margin-top:12px" class="form-group">
+        <label class="form-label">Tamaño del logo (ancho máximo)</label>
+        <div style="display:flex;align-items:center;gap:12px">
+          <input type="range" min="80" max="300" value="${sp.logoWidth||200}" id="splash-logo-width"
+            oninput="this.nextElementSibling.textContent=this.value+'px';previewSplashLive()" style="flex:1">
+          <span style="font-size:13px;color:var(--text-2);width:44px">${sp.logoWidth||200}px</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fondo detrás del logo</label>
+        <select class="form-select" id="splash-logo-bg" onchange="previewSplashLive()">
+          <option value="none" ${(sp.logoBg||'white')==='none'?'selected':''}>Sin fondo (transparente)</option>
+          <option value="white" ${(sp.logoBg||'white')==='white'?'selected':''}>Blanco con bordes redondeados</option>
+          <option value="dark" ${sp.logoBg==='dark'?'selected':''}>Oscuro semitransparente</option>
+        </select>
+      </div>` : ''}
+    </div>
+
+    <div class="admin-section">
+      <div class="admin-section-title">Textos del inicio</div>
+
+      <div class="form-group">
+        <label class="form-label">Texto pequeño (etiqueta superior)</label>
+        <input type="text" class="form-input" id="sp-label"
+          value="${sp.label !== undefined ? sp.label : 'La escuela es de todos'}"
+          placeholder="Ej: La escuela es de todos" oninput="previewSplashLive()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Título principal</label>
+        <input type="text" class="form-input" id="sp-title"
+          value="${sp.title !== undefined ? sp.title : '¿Sabés qué es la Cooperadora Escolar?'}"
+          placeholder="Título grande" oninput="previewSplashLive()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descripción (dentro del cuadro)</label>
+        <textarea class="form-textarea" id="sp-desc" oninput="previewSplashLive()"
+          style="min-height:80px">${sp.desc !== undefined ? sp.desc : 'Una entidad de tu comunidad que trabaja para mejorar la escuela de tus hijos. ¡Y vos podés ser parte!'}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Texto del botón</label>
+        <input type="text" class="form-input" id="sp-btn"
+          value="${sp.btn !== undefined ? sp.btn : '¡Comenzar!'}"
+          placeholder="¡Comenzar!" oninput="previewSplashLive()">
+      </div>
+    </div>
+
+    <div class="admin-section">
+      <div class="admin-section-title">Color de fondo del inicio</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">
+        ${[
+          {name:'MTZ (default)', bg:'linear-gradient(170deg,#1A9ABF 0%,#7B3FA5 50%,#D81B8C 100%)'},
+          {name:'Celeste puro', bg:'linear-gradient(160deg,#1A9ABF,#0D5F7A)'},
+          {name:'Violeta', bg:'linear-gradient(160deg,#7B3FA5,#4A2B70)'},
+          {name:'Rosa', bg:'linear-gradient(160deg,#D81B8C,#8B0A58)'},
+          {name:'Azul nación', bg:'linear-gradient(160deg,#1A4A8A,#009EC3)'},
+          {name:'Verde', bg:'linear-gradient(160deg,#1B8A5A,#2196A6)'},
+        ].map((g,i) => `
+          <div onclick="setSplashBg('${g.bg}')" style="height:48px;border-radius:10px;background:${g.bg};cursor:pointer;border:2px solid ${(sp.bg||'').includes(g.bg.slice(20,30)) ? 'white' : 'transparent'};transition:transform 0.12s;display:flex;align-items:flex-end;padding:4px 6px" title="${g.name}">
+            <span style="font-size:10px;color:rgba(255,255,255,0.85);font-weight:500">${g.name}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div class="admin-section">
+      <div class="admin-section-title">Vista previa en vivo</div>
+      <div id="splash-preview-frame" style="border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border);height:320px;position:relative;display:flex;align-items:center;justify-content:center;background:${sp.bg||'linear-gradient(170deg,#1A9ABF 0%,#7B3FA5 50%,#D81B8C 100%)'}">
+        <div id="splash-preview-inner" style="text-align:center;padding:20px;width:100%">
+          ${buildSplashPreviewHTML(sp)}
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-primary" style="width:100%" onclick="saveSplash()">💾 Guardar pantalla de inicio</button>
+    <div style="margin-top:10px">
+      <button class="btn-secondary" onclick="resetSplash()">Restablecer por defecto</button>
+    </div>
+  `;
+}
+
+function buildSplashPreviewHTML(sp) {
+  const logoHTML = sp.logoData ? (() => {
+    const w = sp.logoWidth || 200;
+    const bg = sp.logoBg || 'white';
+    const bgStyle = bg === 'white' ? 'background:#fff;border-radius:10px;padding:8px 12px;'
+      : bg === 'dark' ? 'background:rgba(0,0,0,0.3);border-radius:10px;padding:8px 12px;' : '';
+    return `<div style="${bgStyle}margin-bottom:12px;display:inline-block"><img src="${sp.logoData}" style="max-width:${w}px;max-height:70px;object-fit:contain;display:block"></div>`;
+  })() : '';
+  return `
+    ${logoHTML}
+    <div style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.7);margin-bottom:4px">${sp.label||'La escuela es de todos'}</div>
+    <div style="font-family:'Fraunces',Georgia,serif;font-size:14px;font-weight:600;color:#fff;margin-bottom:8px;line-height:1.3">${sp.title||'¿Sabés qué es la Cooperadora Escolar?'}</div>
+    <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:8px 12px;max-width:220px;margin:0 auto 12px;font-size:10px;color:#fff;line-height:1.5">${sp.desc||'Una entidad de tu comunidad...'}</div>
+    <div style="background:#fff;color:#7B3FA5;font-size:11px;font-weight:500;padding:8px 20px;border-radius:20px;display:inline-block">${sp.btn||'¡Comenzar!'}</div>
+  `;
+}
+
+function previewSplashLive() {
+  const sp = getCurrentSplashForm();
+  const frame = document.getElementById('splash-preview-frame');
+  const inner = document.getElementById('splash-preview-inner');
+  if (frame) frame.style.background = sp.bg || 'linear-gradient(170deg,#1A9ABF 0%,#7B3FA5 50%,#D81B8C 100%)';
+  if (inner) inner.innerHTML = buildSplashPreviewHTML(sp);
+}
+
+function getCurrentSplashForm() {
+  const sp = data.splash ? {...data.splash} : {};
+  const label = document.getElementById('sp-label'); if (label) sp.label = label.value;
+  const title = document.getElementById('sp-title'); if (title) sp.title = title.value;
+  const desc  = document.getElementById('sp-desc');  if (desc)  sp.desc  = desc.value;
+  const btn   = document.getElementById('sp-btn');   if (btn)   sp.btn   = btn.value;
+  const w     = document.getElementById('splash-logo-width'); if (w) sp.logoWidth = parseInt(w.value);
+  const bg    = document.getElementById('splash-logo-bg');    if (bg) sp.logoBg = bg.value;
+  return sp;
+}
+
+function setSplashBg(bg) {
+  if (!data.splash) data.splash = {};
+  data.splash.bg = bg;
+  save();
+  applySplashToScreen();
+  renderAdminSplash();
+}
+
+function uploadSplashLogo(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    if (!data.splash) data.splash = {};
+    data.splash.logoData = ev.target.result;
+    data.splash.logoName = file.name;
+    save(); applySplashToScreen(); showToast('Logo cargado ✓'); renderAdminSplash();
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleSplashLogoDrop(e) {
+  const file = e.dataTransfer.files[0];
+  if (!file || !file.type.startsWith('image/')) { showToast('Seleccioná una imagen'); return; }
+  const reader = new FileReader();
+  reader.onload = ev => {
+    if (!data.splash) data.splash = {};
+    data.splash.logoData = ev.target.result;
+    data.splash.logoName = file.name;
+    save(); applySplashToScreen(); showToast('Logo cargado ✓'); renderAdminSplash();
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeSplashLogo() {
+  if (!data.splash) return;
+  delete data.splash.logoData; delete data.splash.logoName;
+  save(); applySplashToScreen(); renderAdminSplash(); showToast('Logo eliminado');
+}
+
+function saveSplash() {
+  const sp = getCurrentSplashForm();
+  data.splash = sp;
+  save(); applySplashToScreen(); showToast('Pantalla de inicio guardada ✓');
+}
+
+function resetSplash() {
+  if (!confirm('¿Restablecer la pantalla de inicio a los valores por defecto?')) return;
+  delete data.splash;
+  save(); applySplashToScreen(); renderAdminSplash(); showToast('Inicio restablecido');
+}
+
+function applySplashToScreen() {
+  const sp = data.splash || {};
+  const screen = document.getElementById('screen-splash');
+  if (screen) screen.style.background = sp.bg || 'linear-gradient(170deg,#1A9ABF 0%,#7B3FA5 50%,#D81B8C 100%)';
+
+  // Logo
+  const logoWrap = document.getElementById('splash-logo-wrap');
+  if (logoWrap) {
+    if (sp.logoData) {
+      const w = sp.logoWidth || 200;
+      const bg = sp.logoBg || 'white';
+      const bgStyle = bg === 'white' ? `background:#fff;border-radius:14px;padding:12px 18px;box-shadow:0 4px 20px rgba(0,0,0,0.2);`
+        : bg === 'dark' ? `background:rgba(0,0,0,0.25);border-radius:14px;padding:12px 18px;` : '';
+      logoWrap.innerHTML = `<div style="${bgStyle}display:inline-block;margin-bottom:4px"><img src="${sp.logoData}" style="max-width:${w}px;max-height:90px;object-fit:contain;display:block"></div>`;
+    } else {
+      logoWrap.innerHTML = '';
+    }
+  }
+
+  const defaults = {
+    label: 'La escuela es de todos',
+    title: '¿Sabés qué es la Cooperadora Escolar?',
+    desc: 'Una entidad de tu comunidad que trabaja para mejorar la escuela de tus hijos. ¡Y vos podés ser parte!',
+    btn: '¡Comenzar!'
+  };
+
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML = val || ''; };
+  set('splash-label', sp.label !== undefined ? sp.label : defaults.label);
+  set('splash-title', sp.title !== undefined ? sp.title : defaults.title);
+  set('splash-desc',  sp.desc  !== undefined ? sp.desc  : defaults.desc);
+
+  const btnEl = document.getElementById('splash-btn');
+  if (btnEl) btnEl.textContent = sp.btn !== undefined ? sp.btn : defaults.btn;
+
+  // Button accent color matches theme
+  if (btnEl) btnEl.style.color = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#7B3FA5';
+
+  // Show/hide label and desc wrap
+  const labelEl = document.getElementById('splash-label');
+  if (labelEl) labelEl.style.display = (sp.label === '') ? 'none' : '';
+  const descWrap = document.getElementById('splash-desc-wrap');
+  if (descWrap) descWrap.style.display = (sp.desc === '') ? 'none' : '';
+}
+
+/* ── Content Tab ── */
+function renderAdminContent() {
+  const body = document.getElementById('admin-body');
+  body.innerHTML = `
+    <div class="admin-section">
+      <div class="admin-section-title">Módulos activos</div>
+      ${data.modules.map(m => `
+        <div class="admin-module-row" id="admrow-${m.id}">
+          <div class="admin-mod-icon">${m.icon}</div>
+          <div class="admin-mod-info">
+            <div class="admin-mod-name">${m.name}</div>
+            <div class="admin-mod-meta">${m.paragraphs.length} párrafos · ${m.quiz.length} preguntas</div>
+          </div>
+          <div class="admin-mod-actions">
+            <button class="btn-icon" title="Editar" onclick="openEditModule(${m.id})">✎</button>
+            <button class="btn-icon danger" title="Eliminar" onclick="deleteModule(${m.id})">✕</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <button class="btn-add" onclick="openNewModule()">+ Agregar nuevo módulo</button>
+    <div style="margin-top:20px">
+      <button class="btn-secondary" onclick="resetProgress()">🔄 Reiniciar progreso de alumnos</button>
+    </div>
+  `;
+}
+
+function resetProgress() {
+  if (confirm('¿Reiniciar todo el progreso? Los módulos completados se marcarán como nuevos.')) {
+    data.completedModules = [];
+    save();
+    showToast('Progreso reiniciado');
+    renderAdminContent();
+  }
+}
+
+function deleteModule(id) {
+  if (!confirm('¿Eliminar este módulo? Esta acción no se puede deshacer.')) return;
+  data.modules = data.modules.filter(m => m.id !== id);
+  data.completedModules = data.completedModules.filter(c => c !== id);
+  save();
+  renderAdminContent();
+  showToast('Módulo eliminado');
+}
+
+function openNewModule() {
+  editingModuleId = null;
+  tempParaList = [''];
+  tempQuizList = [];
+  document.getElementById('modal-module-title').textContent = 'Nuevo módulo';
+  document.getElementById('edit-mod-name').value = '';
+  document.getElementById('edit-mod-icon').value = '📖';
+  document.getElementById('edit-mod-color').value = '#E0F5FB';
+  document.getElementById('edit-mod-color-hex').value = '#E0F5FB';
+  renderParaFields();
+  renderQuizFields();
+  openModal('modal-module');
+}
+
+function openEditModule(id) {
+  const mod = data.modules.find(m => m.id === id);
+  editingModuleId = id;
+  tempParaList = [...mod.paragraphs];
+  tempQuizList = mod.quiz.map(q => ({...q, opts: [...q.opts]}));
+  document.getElementById('modal-module-title').textContent = 'Editar módulo';
+  document.getElementById('edit-mod-name').value = mod.name;
+  document.getElementById('edit-mod-icon').value = mod.icon;
+  document.getElementById('edit-mod-color').value = mod.iconBg;
+  document.getElementById('edit-mod-color-hex').value = mod.iconBg;
+  renderParaFields();
+  renderQuizFields();
+  openModal('modal-module');
+  // Sync color pickers
+  document.getElementById('edit-mod-color').addEventListener('input', e => {
+    document.getElementById('edit-mod-color-hex').value = e.target.value;
+  });
+  document.getElementById('edit-mod-color-hex').addEventListener('input', e => {
+    document.getElementById('edit-mod-color').value = e.target.value;
+  });
+}
+
+function renderParaFields() {
+  const container = document.getElementById('edit-paras-list');
+  container.innerHTML = tempParaList.map((p, i) => `
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-start">
+      <textarea class="form-textarea" id="para-${i}" style="min-height:72px;flex:1">${p}</textarea>
+      <button class="btn-icon danger" onclick="removePara(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function addParaField() {
+  syncParaList();
+  tempParaList.push('');
+  renderParaFields();
+  setTimeout(() => {
+    const ta = document.getElementById('para-' + (tempParaList.length - 1));
+    if (ta) ta.focus();
+  }, 50);
+}
+
+function removePara(i) {
+  syncParaList();
+  tempParaList.splice(i, 1);
+  renderParaFields();
+}
+
+function syncParaList() {
+  tempParaList = tempParaList.map((_, i) => {
+    const el = document.getElementById('para-' + i);
+    return el ? el.value : '';
+  });
+}
+
+function renderQuizFields() {
+  const container = document.getElementById('edit-quiz-list');
+  if (tempQuizList.length === 0) {
+    container.innerHTML = '<div class="text-sm" style="margin-bottom:8px">No hay preguntas aún.</div>';
+    return;
+  }
+  container.innerHTML = tempQuizList.map((q, i) => `
+    <div class="quiz-edit-row">
+      <div class="quiz-q">
+        <div><strong>${i+1}.</strong> ${q.q}</div>
+        <div class="quiz-a">✓ ${q.opts[q.correct]}</div>
+      </div>
+      <button class="btn-icon danger" onclick="removeQuiz(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function removeQuiz(i) {
+  tempQuizList.splice(i, 1);
+  renderQuizFields();
+}
+
+function addQuizField() {
+  ['q-question','q-a','q-b','q-c','q-d','q-explanation'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('q-correct').value = '0';
+  openModal('modal-quiz');
+}
+
+function saveQuizQuestion() {
+  const q = document.getElementById('q-question').value.trim();
+  const a = document.getElementById('q-a').value.trim();
+  const b = document.getElementById('q-b').value.trim();
+  const c = document.getElementById('q-c').value.trim();
+  const d = document.getElementById('q-d').value.trim();
+  const correct = parseInt(document.getElementById('q-correct').value);
+  const exp = document.getElementById('q-explanation').value.trim();
+  if (!q || !a || !b) { showToast('Completá al menos la pregunta y dos opciones'); return; }
+  const opts = [a, b, c, d].filter(Boolean);
+  tempQuizList.push({ q, opts, correct: Math.min(correct, opts.length - 1), exp });
+  renderQuizFields();
+  closeModal('modal-quiz');
+}
+
+function saveModule() {
+  syncParaList();
+  const name = document.getElementById('edit-mod-name').value.trim();
+  const icon = document.getElementById('edit-mod-icon').value.trim();
+  const iconBg = document.getElementById('edit-mod-color-hex').value.trim() || document.getElementById('edit-mod-color').value;
+  const paragraphs = tempParaList.filter(p => p.trim() !== '');
+  if (!name) { showToast('El módulo necesita un nombre'); return; }
+  if (paragraphs.length === 0) { showToast('Agregá al menos un párrafo'); return; }
+
+  if (editingModuleId !== null) {
+    const idx = data.modules.findIndex(m => m.id === editingModuleId);
+    if (idx !== -1) {
+      data.modules[idx] = { ...data.modules[idx], name, icon, iconBg, paragraphs, quiz: tempQuizList };
+    }
+  } else {
+    const newId = Math.max(0, ...data.modules.map(m => m.id)) + 1;
+    data.modules.push({ id: newId, name, icon, iconBg, paragraphs, quiz: tempQuizList });
+  }
+  save();
+  closeModal('modal-module');
+  renderAdminContent();
+  showToast('Módulo guardado ✓');
+}
+
+/* ── Theme Tab ── */
+const THEMES = [
+  // ── MTZ / Identidad visual del flyer ──
+  {
+    name: 'MTZ Completo', tag: 'Igual al flyer',
+    accent: '#9B59B6', light: '#F3E8FB', dark: '#6C3483',
+    hl: '#E8F8FB', hlb: '#1A9ABF', hlt: '#0F718A',
+    hero: 'linear-gradient(170deg,#1A9ABF 0%,#7B3FA5 45%,#D81B8C 100%)'
+  },
+  {
+    name: 'MTZ Celeste', tag: 'Celeste oficial',
+    accent: '#1A9ABF', light: '#E0F5FB', dark: '#0F718A',
+    hl: '#E0F5FB', hlb: '#1A9ABF', hlt: '#0F718A',
+    hero: 'linear-gradient(160deg,#1A9ABF 0%,#0099CC 100%)'
+  },
+  {
+    name: 'MTZ Violeta', tag: 'Violeta → Rosa',
+    accent: '#8E44AD', light: '#F0E6FB', dark: '#5B2C6F',
+    hl: '#F0E6FB', hlb: '#8E44AD', hlt: '#5B2C6F',
+    hero: 'linear-gradient(160deg,#7B3FA5 0%,#D81B8C 100%)'
+  },
+  {
+    name: 'MTZ Rosa', tag: 'Rosa brillante',
+    accent: '#D81B8C', light: '#FCE4F5', dark: '#8B0A58',
+    hl: '#FCE4F5', hlb: '#D81B8C', hlt: '#8B0A58',
+    hero: 'linear-gradient(160deg,#C2185B 0%,#E91E8C 100%)'
+  },
+  // ── Provincia de Buenos Aires ──
+  {
+    name: 'PBA Celeste', tag: 'DGCyE',
+    accent: '#009EC3', light: '#E0F7FD', dark: '#006D8A',
+    hl: '#E0F7FD', hlb: '#009EC3', hlt: '#006D8A',
+    hero: 'linear-gradient(160deg,#009EC3 0%,#5C6BC0 100%)'
+  },
+  {
+    name: 'Azul nación', tag: 'Institucional',
+    accent: '#1A4A8A', light: '#E6EEF8', dark: '#102C56',
+    hl: '#E6EEF8', hlb: '#1A4A8A', hlt: '#102C56',
+    hero: 'linear-gradient(160deg,#1A4A8A 0%,#009EC3 100%)'
+  },
+  // ── Educativos ──
+  {
+    name: 'Verde escolar', tag: 'Natural',
+    accent: '#1B8A5A', light: '#E6F4EE', dark: '#0F5C3A',
+    hl: '#E6F4EE', hlb: '#1B8A5A', hlt: '#0F5C3A',
+    hero: 'linear-gradient(160deg,#1B8A5A 0%,#2196A6 100%)'
+  },
+  {
+    name: 'Naranja cálido', tag: 'Energético',
+    accent: '#E67E22', light: '#FEF0E0', dark: '#B05A0A',
+    hl: '#FEF0E0', hlb: '#E67E22', hlt: '#B05A0A',
+    hero: 'linear-gradient(160deg,#E67E22 0%,#D81B8C 100%)'
+  },
+  {
+    name: 'Gris moderno', tag: 'Minimalista',
+    accent: '#546E7A', light: '#ECEFF1', dark: '#2E3F47',
+    hl: '#ECEFF1', hlb: '#546E7A', hlt: '#2E3F47',
+    hero: 'linear-gradient(160deg,#546E7A 0%,#37474F 100%)'
+  },
+  {
+    name: 'Modo oscuro', tag: 'Nocturno',
+    accent: '#29ABE2', light: '#0D2233', dark: '#87D4F5',
+    hl: '#0D2233', hlb: '#29ABE2', hlt: '#87D4F5',
+    hero: 'linear-gradient(160deg,#1A1A2E 0%,#16213E 100%)'
+  },
+];
+
+const FONTS = [
+  { display: 'Fraunces', body: 'DM Sans', label: 'Clásico (actual)', preview: 'Fraunces + DM Sans' },
+  { display: 'Playfair Display', body: 'Lato', label: 'Editorial', preview: 'Playfair + Lato' },
+  { display: 'Sora', body: 'Sora', label: 'Moderno', preview: 'Sora + Sora' },
+  { display: 'Merriweather', body: 'Source Sans 3', label: 'Formal', preview: 'Merriweather + Source Sans' },
+];
+
+function themeCard(t, i) {
+  return `<div class="theme-card" id="tcard-${i}" onclick="applyTheme(${i})" style="cursor:pointer;border-radius:var(--radius-md);overflow:hidden;border:2px solid var(--border);transition:border-color 0.15s,transform 0.12s">
+    <div style="height:52px;background:${t.hero};position:relative">
+      <div style="position:absolute;bottom:6px;left:8px;display:flex;gap:4px">
+        <div style="width:13px;height:13px;border-radius:50%;background:${t.accent};box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>
+        <div style="width:13px;height:13px;border-radius:50%;background:${t.light};border:1px solid rgba(255,255,255,0.6)"></div>
+        <div style="width:13px;height:13px;border-radius:50%;background:${t.dark};box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>
+      </div>
+    </div>
+    <div style="padding:7px 10px;background:var(--surface)">
+      <div style="font-size:12px;font-weight:500;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.name}</div>
+      <div style="font-size:10px;color:var(--text-3);margin-top:1px">${t.tag || ''}</div>
+    </div>
+  </div>`;
+}
+
+function renderAdminTheme() {
+  const root = document.documentElement;
+  const body = document.getElementById('admin-body');
+  const brand = data.branding || {};
+
+  body.innerHTML = `
+    <!-- LOGO / MARCA -->
+    <div class="admin-section">
+      <div class="admin-section-title">Logo institucional</div>
+      <p class="text-sm" style="margin-bottom:14px">El logo aparece en la pantalla de inicio. Podés subir PNG, JPG o SVG (recomendado: fondo transparente).</p>
+
+      <div id="logo-preview-wrap" style="margin-bottom:14px;display:${brand.logoData ? 'flex' : 'none'};align-items:center;gap:12px;padding:12px 14px;background:var(--surface-2);border-radius:var(--radius-md);border:1px solid var(--border)">
+        <img id="logo-preview" src="${brand.logoData || ''}" style="max-height:52px;max-width:140px;object-fit:contain;border-radius:4px">
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500;color:var(--text-1)" id="logo-filename">${brand.logoName || ''}</div>
+          <div style="font-size:12px;color:var(--text-3)">Logo cargado</div>
+        </div>
+        <button class="btn-icon danger" onclick="removeLogo()" title="Quitar logo">✕</button>
+      </div>
+
+      <!-- Drop zone -->
+      <div id="logo-dropzone" onclick="document.getElementById('logo-file').click()"
+        style="border:2px dashed var(--border-strong);border-radius:var(--radius-md);padding:24px 16px;text-align:center;cursor:pointer;background:var(--surface-2);transition:border-color 0.15s,background 0.15s"
+        ondragover="event.preventDefault();this.style.borderColor='var(--accent)';this.style.background='var(--accent-light)'"
+        ondragleave="this.style.borderColor='';this.style.background=''"
+        ondrop="event.preventDefault();this.style.borderColor='';this.style.background='';handleLogoDrop(event)">
+        <div style="font-size:28px;margin-bottom:8px">🖼️</div>
+        <div style="font-size:14px;font-weight:500;color:var(--text-1);margin-bottom:4px">Arrastrá el logo aquí</div>
+        <div style="font-size:12px;color:var(--text-3)">o tocá para seleccionar un archivo</div>
+      </div>
+      <input type="file" id="logo-file" accept="image/*" style="display:none" onchange="uploadLogo(event)">
+
+      <div style="margin-top:14px;display:${brand.logoData ? 'block' : 'none'}" id="logo-options">
+        <div class="form-group">
+          <label class="form-label">Posición del logo</label>
+          <select class="form-select" id="logo-position" onchange="saveBrandingLive()">
+            <option value="center" ${(brand.logoPosition||'center')==='center'?'selected':''}>Centro</option>
+            <option value="left" ${brand.logoPosition==='left'?'selected':''}>Izquierda</option>
+            <option value="right" ${brand.logoPosition==='right'?'selected':''}>Derecha</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tamaño del logo</label>
+          <div style="display:flex;align-items:center;gap:12px">
+            <input type="range" min="30" max="120" value="${brand.logoHeight||60}" id="logo-size" oninput="this.nextElementSibling.textContent=this.value+'px';saveBrandingLive()" style="flex:1">
+            <span style="font-size:13px;color:var(--text-2);width:40px">${brand.logoHeight||60}px</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEXTOS DEL HERO -->
+    <div class="admin-section">
+      <div class="admin-section-title">Textos de la pantalla de inicio</div>
+      <div class="form-group">
+        <label class="form-label">Etiqueta (pequeña, arriba del título)</label>
+        <input type="text" class="form-input" id="hero-label-input" value="${brand.heroLabel !== undefined ? brand.heroLabel : 'Provincia de Buenos Aires'}" placeholder="Ej: Consejo Escolar La Matanza">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Título principal</label>
+        <input type="text" class="form-input" id="hero-title-input" value="${brand.heroTitle !== undefined ? brand.heroTitle : 'CoopEscolar'}" placeholder="Ej: CoopEscolar MTZ">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descripción</label>
+        <textarea class="form-textarea" id="hero-sub-input" style="min-height:70px">${brand.heroSub !== undefined ? brand.heroSub : 'Aprendé sobre cooperadoras escolares paso a paso. Completá las lecciones y poné a prueba tus conocimientos.'}</textarea>
+      </div>
+      <button class="btn-secondary" onclick="saveBranding()">Guardar textos</button>
+    </div>
+
+    <!-- PALETAS -->
+    <div class="admin-section">
+      <div class="admin-section-title">Paleta de colores</div>
+
+      <!-- Group: MTZ -->
+      <div style="font-size:11px;font-weight:500;color:var(--accent);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px">Municipio de La Matanza</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+        ${THEMES.slice(0,4).map((t, i) => themeCard(t, i)).join('')}
+      </div>
+
+      <!-- Group: Provincia -->
+      <div style="font-size:11px;font-weight:500;color:var(--accent);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px">Provincia de Buenos Aires</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+        ${THEMES.slice(4,6).map((t, i) => themeCard(t, i+4)).join('')}
+      </div>
+
+      <!-- Group: Otros -->
+      <div style="font-size:11px;font-weight:500;color:var(--accent);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px">Otros estilos</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+        ${THEMES.slice(6).map((t, i) => themeCard(t, i+6)).join('')}
+      </div>
+      <div class="admin-section-title" style="margin-top:4px">Ajuste fino de colores</div>
+      ${[
+        ['Color principal (botones, progreso)', '--accent'],
+        ['Fondo claro', '--accent-light'],
+        ['Color oscuro (hover)', '--accent-dark'],
+        ['Fondo recuadro destacado', '--hl-bg'],
+        ['Borde recuadro destacado', '--hl-border'],
+        ['Texto recuadro destacado', '--hl-text'],
+      ].map(([label, varname]) => {
+        const current = getComputedStyle(root).getPropertyValue(varname).trim();
+        return `<div class="color-row">
+          <label>${label}</label>
+          <input type="color" class="color-picker" value="${current}" onchange="setVar('${varname}', this.value); this.nextElementSibling.value=this.value">
+          <input type="text" class="color-hex" value="${current}" oninput="setVar('${varname}', this.value); this.previousElementSibling.value=this.value">
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- FONDO HERO -->
+    <div class="admin-section">
+      <div class="admin-section-title">Fondo del encabezado</div>
+      <div class="form-group">
+        <label class="form-label">CSS del fondo (color sólido o gradiente)</label>
+        <input type="text" class="form-input" id="hero-bg-input" value="${getComputedStyle(root).getPropertyValue('--hero-bg').trim() || 'var(--accent-light)'}" placeholder="Ej: linear-gradient(160deg,#1A9ABF,#9B59B6)">
+        <div style="margin-top:8px;height:36px;border-radius:var(--radius-sm);border:1px solid var(--border)" id="hero-bg-preview"></div>
+      </div>
+      <button class="btn-secondary" onclick="applyHeroBg()">Aplicar fondo</button>
+    </div>
+
+    <!-- TIPOGRAFÍA -->
+    <div class="admin-section">
+      <div class="admin-section-title">Tipografía</div>
+      ${FONTS.map((f, i) => `
+        <div class="font-option" id="font-${i}" onclick="applyFont(${i})">
+          <div class="font-option-name" style="font-family:'${f.display}',serif">${f.label}</div>
+          <div class="font-option-preview">${f.preview}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <!-- BORDES -->
+    <div class="admin-section">
+      <div class="admin-section-title">Bordes redondeados</div>
+      <div class="color-row">
+        <label>Radio base</label>
+        <input type="range" min="0" max="24" value="12" oninput="setVar('--radius-md', this.value+'px'); setVar('--radius-lg', (parseInt(this.value)+6)+'px'); this.nextElementSibling.textContent=this.value+'px'" style="flex:1">
+        <span style="font-size:13px;color:var(--text-2);width:40px">12px</span>
+      </div>
+    </div>
+
+    <button class="btn-add" onclick="saveTheme()">💾 Guardar toda la estética</button>
+    <div class="mt-8">
+      <button class="btn-secondary" onclick="resetTheme()">Restablecer por defecto</button>
+    </div>
+  `;
+
+  // Live preview hero bg
+  const hbi = document.getElementById('hero-bg-input');
+  const hbp = document.getElementById('hero-bg-preview');
+  if (hbi && hbp) {
+    hbp.style.background = hbi.value || 'var(--accent-light)';
+    hbi.addEventListener('input', () => { hbp.style.background = hbi.value; });
+  }
+}
+
+function handleLogoDrop(e) {
+  const file = e.dataTransfer.files[0];
+  if (!file || !file.type.startsWith('image/')) { showToast('Seleccioná una imagen'); return; }
+  const reader = new FileReader();
+  reader.onload = ev => {
+    if (!data.branding) data.branding = {};
+    data.branding.logoData = ev.target.result;
+    data.branding.logoName = file.name;
+    save();
+    applyBrandingToHome();
+    showToast('Logo cargado ✓');
+    renderAdminTheme();
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveBrandingLive() {
+  if (!data.branding) data.branding = {};
+  const posEl = document.getElementById('logo-position');
+  const sizeEl = document.getElementById('logo-size');
+  if (posEl) data.branding.logoPosition = posEl.value;
+  if (sizeEl) data.branding.logoHeight = parseInt(sizeEl.value);
+  save();
+  applyBrandingToHome();
+}
+
+function uploadLogo(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    if (!data.branding) data.branding = {};
+    data.branding.logoData = ev.target.result;
+    data.branding.logoName = file.name;
+    save();
+    applyBrandingToHome();
+    showToast('Logo guardado ✓');
+    renderAdminTheme();
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeLogo() {
+  if (!data.branding) return;
+  delete data.branding.logoData;
+  delete data.branding.logoName;
+  save();
+  applyBrandingToHome();
+  showToast('Logo eliminado');
+  renderAdminTheme();
+}
+
+function saveBranding() {
+  if (!data.branding) data.branding = {};
+  data.branding.heroLabel = document.getElementById('hero-label-input').value;
+  data.branding.heroTitle = document.getElementById('hero-title-input').value;
+  data.branding.heroSub   = document.getElementById('hero-sub-input').value;
+  save();
+  applyBrandingToHome();
+  showToast('Textos guardados ✓');
+}
+
+function applyHeroBg() {
+  const val = document.getElementById('hero-bg-input').value.trim();
+  setVar('--hero-bg', val);
+  if (!data.branding) data.branding = {};
+  data.branding.heroBg = val;
+  save();
+  applyBrandingToHome();
+  showToast('Fondo aplicado ✓');
+}
+
+function applyBrandingToHome() {
+  const brand = data.branding || {};
+  // Logo
+  const wrap = document.getElementById('hero-logo-wrap');
+  if (wrap) {
+    if (brand.logoData) {
+      const h = brand.logoHeight || 60;
+      const pos = brand.logoPosition || 'center';
+      const align = pos === 'left' ? 'flex-start' : pos === 'right' ? 'flex-end' : 'center';
+      wrap.innerHTML = `<div style="display:flex;justify-content:${align};margin-bottom:14px"><img src="${brand.logoData}" style="max-height:${h}px;max-width:220px;object-fit:contain;display:block"></div>`;
+    } else {
+      wrap.innerHTML = '';
+    }
+  }
+  // Texts
+  if (brand.heroLabel !== undefined) { const el = document.getElementById('hero-label'); if (el) el.textContent = brand.heroLabel; }
+  if (brand.heroTitle !== undefined) { const el = document.getElementById('hero-title'); if (el) el.textContent = brand.heroTitle; }
+  if (brand.heroSub   !== undefined) { const el = document.getElementById('hero-sub');   if (el) el.textContent = brand.heroSub; }
+  // Hero background
+  const hero = document.getElementById('home-hero');
+  if (hero && brand.heroBg) hero.style.background = brand.heroBg;
+}
+
+function setVar(name, value) {
+  document.documentElement.style.setProperty(name, value);
+}
+
+function applyTheme(i) {
+  const t = THEMES[i];
+  setVar('--accent', t.accent);
+  setVar('--accent-light', t.light);
+  setVar('--accent-dark', t.dark);
+  setVar('--hl-bg', t.hl);
+  setVar('--hl-border', t.hlb);
+  setVar('--hl-text', t.hlt);
+  const hero = document.getElementById('home-hero');
+  if (hero) {
+    hero.style.background = t.hero;
+    // Mark as dark gradient if it's not a light pastel
+    const isDark = t.hero.includes('gradient') && !t.light.startsWith('#F');
+    hero.classList.toggle('hero-dark', isDark);
+  }
+  document.querySelectorAll('[id^=tcard-]').forEach((c, idx) => {
+    c.style.borderColor = idx === i ? t.accent : 'var(--border)';
+    c.style.transform = idx === i ? 'scale(1.03)' : '';
+  });
+}
+
+function loadSavedTheme() {
+  if (data.theme) Object.entries(data.theme).forEach(([k, v]) => setVar(k, v));
+  // restore hero bg from branding if set
+  const brand = data.branding || {};
+  if (brand.heroBg) {
+    const hero = document.getElementById('home-hero');
+    if (hero) hero.style.background = brand.heroBg;
+  }
+}
+
+/* ── Settings Tab ── */
+
+function applyFont(i) {
+  const f = FONTS[i];
+  const link = document.getElementById('dynamic-font') || (() => {
+    const l = document.createElement('link'); l.id = 'dynamic-font'; l.rel = 'stylesheet';
+    document.head.appendChild(l); return l;
+  })();
+  link.href = `https://fonts.googleapis.com/css2?family=${f.display.replace(/ /g,'+')}:wght@400;500;600&family=${f.body.replace(/ /,'+')}:wght@400;500&display=swap`;
+  setVar('--font-display', `'${f.display}', Georgia, serif`);
+  setVar('--font-body', `'${f.body}', system-ui, sans-serif`);
+  document.querySelectorAll('[id^=font-]').forEach((el, idx) => el.classList.toggle('active', idx === i));
+}
+
+function saveTheme() {
+  const vars = ['--accent','--accent-light','--accent-dark','--hl-bg','--hl-border','--hl-text','--font-display','--font-body','--radius-md','--radius-lg','--radius-xl'];
+  const theme = {};
+  vars.forEach(v => { theme[v] = getComputedStyle(document.documentElement).getPropertyValue(v).trim(); });
+  data.theme = theme;
+  save();
+  showToast('Estética guardada ✓');
+}
+
+function resetTheme() {
+  delete data.theme;
+  save();
+  showToast('Estética restablecida. Recargá la página.');
+}
+
+
+function renderAdminSettings() {
+  const body = document.getElementById('admin-body');
+  body.innerHTML = `
+    <div class="admin-section">
+      <div class="admin-section-title">Contraseña de administrador</div>
+      <div class="form-group">
+        <label class="form-label">Nueva contraseña</label>
+        <input type="password" class="form-input" id="new-pw" placeholder="Nueva contraseña">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirmar contraseña</label>
+        <input type="password" class="form-input" id="new-pw2" placeholder="Repetir contraseña">
+      </div>
+      <button class="btn-primary" style="width:100%" onclick="changePassword()">Cambiar contraseña</button>
+    </div>
+    <div class="admin-section">
+      <div class="admin-section-title">Exportar / importar datos</div>
+      <p class="text-sm" style="margin-bottom:12px">Podés exportar todos los módulos para hacer una copia de seguridad o importar datos en otro dispositivo.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn-secondary" onclick="exportData()">⬇ Exportar JSON</button>
+        <button class="btn-secondary" onclick="document.getElementById('import-file').click()">⬆ Importar JSON</button>
+      </div>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+    <div class="admin-section">
+      <div class="admin-section-title" style="color:var(--danger)">Zona peligrosa</div>
+      <button class="btn-secondary" style="border-color:var(--danger);color:var(--danger)" onclick="hardReset()">⚠ Restablecer toda la app</button>
+    </div>
+  `;
+}
+
+function changePassword() {
+  const pw = document.getElementById('new-pw').value;
+  const pw2 = document.getElementById('new-pw2').value;
+  if (!pw) { showToast('Ingresá una contraseña'); return; }
+  if (pw !== pw2) { showToast('Las contraseñas no coinciden'); return; }
+  data.adminPassword = pw;
+  save();
+  showToast('Contraseña actualizada ✓');
+}
+
+function exportData() {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'coopeescolar-backup.json';
+  a.click();
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (!imported.modules) throw new Error('Formato inválido');
+      data = imported;
+      save();
+      showToast('Datos importados ✓');
+      renderHome();
+    } catch { showToast('Error al importar el archivo'); }
+  };
+  reader.readAsText(file);
+}
+
+function hardReset() {
+  if (!confirm('¿Restablecer TODA la app? Se borrarán todos los módulos, progreso y configuración.')) return;
+  localStorage.removeItem('coopedata');
+  location.reload();
+}
+
+/* ═══════════════════════════════════════════
+   MODALS
+═══════════════════════════════════════════ */
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+loadSavedTheme();
+renderHome();
+showScreen('splash');
+setTimeout(() => { applySplashToScreen(); applyBrandingToHome(); }, 0);
+</script>
+</body>
+</html>
